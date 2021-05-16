@@ -12,7 +12,9 @@ const secret = jwt_config.secret;
 exports.make_token = function(req, res, next) {
     const { userId, problemId } = req.body;
 
-    console.log(userId, problemId);
+    if (!userId || !problemId) {
+        return res.status(400).send('No user/problem');
+    }
 
     /*
     const check = function(id) {
@@ -28,14 +30,11 @@ exports.make_token = function(req, res, next) {
     */
 
     const make_token = function(user, problem) {
-        if(!user || !problem) {
-            res.status(400).send('No user/problem');
-        }
         const p = new Promise((resolve, reject) => {
             jwt.sign(
                 {
-                    "user": user,
-                    "problem": problem,
+                    "uid": user,
+                    "pid": problem,
                 },
                 secret,
                 {
@@ -59,7 +58,6 @@ exports.make_token = function(req, res, next) {
     const append_grading_key = function() {
         const token = req.authToken;
         req.gradingKey = crypto.createHash('SHA1').update(token).digest('hex');
-        console.log(req.gradingKey);
         next();
     };
 
@@ -98,15 +96,15 @@ exports.make_token = function(req, res, next) {
 
 exports.verify_token = function(req, res, next) {
     // read the token from header or url
-    const token = req.header('x-auth-token') || req.query.token;
+    const token = req.header('X-Auth-Token') || req.query.token;
 
     //token does not exist
     if(!token) {
-        return res.status(401).send('No x-auth-token');
+        return res.status(401).send('No X-Auth-Token');
     }
 
     const p = new Promise((resolve, reject) => {
-        jwt.verify(token, req.app.get('jwt-secret'), (err, decoded) => {
+        jwt.verify(token, secret, (err, decoded) => {
             if(err) reject(err);
             resolve(decoded);
         });
@@ -115,7 +113,6 @@ exports.verify_token = function(req, res, next) {
         req.decoded = decoded;
         req.authToken = token;
         req.gradingKey = crypto.createHash('SHA1').update(token).digest('hex');
-        console.log(req.gradingKey);
         next('route');
     })
         .catch(err => {

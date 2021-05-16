@@ -3,43 +3,11 @@
 //const Problem = require('../models/problem');
 //const Grading = require('../models/grading');
 
-
-
-// dummy data
-const data = {
-    "gradingData" : {
-        "timestamp": 0,
-        "states": [
-            {
-                "id": 0,
-                "floor": 6,
-                "passengers": [
-                    {
-                        "id": 0,
-                        "timestamp": 0,
-                        "start": 6,
-                        "end": 1
-                    }
-                ],
-                "status": "OPENED"
-            },
-        ],
-        "tickets": [],
-        "isEnd": false,
-    },
-    "entire_tickets": [
-        {
-            "id": 0,
-            "timestamp": 0,
-            "start": 6,
-            "end": 1,
-        },
-    ]
-};
+const gradingdb = require('../models/mongodb');
 
 
 // req에 첨부된 data에서 state를 가져와서 token과 함께 respond
-exports.respond_state = function(req, res) {
+exports.respond_state = function (req, res) {
     const gradingData = req.data.gradingData;
     const token = req.authToken;
     const ret = {
@@ -52,7 +20,7 @@ exports.respond_state = function(req, res) {
 
 // start api 호출 시 발급된 토큰으로 채점DB에 초기 state와 티켓배열을 넣음
 // 성공하면 req.state 에 초기 state를 첨부
-exports.create_first_state = function(req, res, next) {
+exports.create_first_state = async function(req, res, next) {
     // problem db에서 가져오는 경우
 
     // 랜덤 생성
@@ -62,37 +30,53 @@ exports.create_first_state = function(req, res, next) {
 
     
     //temporary implementation
+    const token = req.gradingKey;
+    let data = await gradingdb.create(token);
     req.data = data;
     next();
 };
 
 
 // 채점DB에서 token에 해당하는 데이터를 가져와 req에 첨부
-exports.get_state = function(req, res, next) {
+exports.get_state = async function(req, res, next) {
     // 채점DB에서 token에 해당하는 데이터를 SELECT
 
     // temporary implementation
-    req.data = data;
-    next();
+    
+    const token = req.gradingKey;
+    try {
+        let data = await gradingdb.select(token);
+        req.data = data;
+        next();
+    }
+    catch (err) {
+        res.status(401).send('No data for token in DB');
+    }
 };
 
 
-exports.update_state = function(req, res, next) {
+exports.update_state = async function(req, res, next) {
     // 채점DB에서 token에 해당하는 데이터를 UPDATE
 
-
+    const token = req.gradingKey;
+    let data = req.data;
+    const ret = await gradingdb.update(token, data);
     next();
 };
 
 
-exports.delete_state = function(req, res, next) {
+exports.delete_state = async function(req, res, next) {
+
+    const token = req.gradingKey;
+    // 채점DB에서 token에 해당하는 데이터를 DELETE
+    const data = await gradingdb.delete(token);
+    console.log("data deleted.", data);
     if(!req.decoded) {
-        // 토큰 만료시 채점DB에서 token에 해당하는 데이터를 DELETE
+        // 토큰 만료시 실패
         res.status(400).send('token expired');
     }
     else {
         // 토큰이 만료된게 아니면 채점이 끝난 경우
-        // 채점DB에서 token에 해당하는 데이터를 DELETE
         next();
     }
     

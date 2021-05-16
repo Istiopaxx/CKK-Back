@@ -8,8 +8,8 @@ const morgan = require('morgan');
 const startRouter = require('./routes/start');
 const onStateRouter = require('./routes/onState');
 const actionRouter = require('./routes/action');
-
-
+const mongodb = require('./models/mongodb');
+mongodb.connect();
 
 // load config
 
@@ -59,7 +59,6 @@ let data = {
     ]
 };
 app.get('/api', (req, res) => res.json(data));
-
 
 
 
