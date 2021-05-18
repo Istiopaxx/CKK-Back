@@ -12,9 +12,9 @@ function ProblemListItem({ url, name, description}) {
     return (
         <Link to={url}>
             <Card
-                style={{ width: 300, margin: 0}}
+                style={{ width: 300, margin: 0 }}
                 cover={
-                    <img 
+                    <img
                         alt="example"
                         src=""
                     />
@@ -27,7 +27,7 @@ function ProblemListItem({ url, name, description}) {
                 
             </Card>
         </Link>
-    )
+    );
 
 }
 
