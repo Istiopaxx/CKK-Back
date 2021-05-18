@@ -4,16 +4,19 @@ const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const startRouter = require('./routes/start');
 const onStateRouter = require('./routes/onState');
 const actionRouter = require('./routes/action');
+const googleLoginRouter = require('./oauth2/google');
 const mongodb = require('./models/mongodb');
 mongodb.connect();
 
 // load config
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 4000;
 
 
 
@@ -22,14 +25,12 @@ const app = express();
 const server = http.createServer(app);
 
 
-//parse json & url-encoded query
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// logging
 app.use(morgan('dev'));
+app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cookieParser());
 
-//set secret key for jwt
 
 
 // server open
@@ -43,6 +44,7 @@ server.listen(port, () => {
 app.use('/api/start', startRouter);
 app.use('/api/onState', onStateRouter);
 app.use('/api/action', actionRouter);
+app.use('/api/login', googleLoginRouter);
 
 let data = {
     "problems": [
@@ -59,6 +61,7 @@ let data = {
     ]
 };
 app.get('/api', (req, res) => res.json(data));
+app.get('/', (req, res) => res.send("로그인 후 홈페이지"));
 
 
 
