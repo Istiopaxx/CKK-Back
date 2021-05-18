@@ -18,20 +18,20 @@ function Header() {
             <nav className="gnb">
                 <Menu mode="horizontal">
                     <Menu.Item key="home">
-                        <Link to="/"><a>Home</a></Link>
+                        <Link to="/">Home</Link>
                     </Menu.Item>
                     <Menu.Item key="about">
-                        <Link to="/about"><a>About</a></Link>
+                        <Link to="/about">About</Link>
                     </Menu.Item>
 
                     <Menu.Item key="problems">
-                        <Link to="/problems"><a>Problems</a></Link>
+                        <Link to="/problems">Problems</Link>
                     </Menu.Item>
                 </Menu>
             </nav>
 
             <Button type="primary" className="login">
-                <Link to="/login"><a>Login</a></Link>
+                <Link to="/login">Login</Link>
             </Button>
             
 
