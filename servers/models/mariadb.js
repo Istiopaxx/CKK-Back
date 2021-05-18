@@ -83,17 +83,22 @@ async function delete_table(tableName) {
 
 // ======================================================================
 
-async function find_by_userId(userId) {
+exports.find_by_emailAddress = async function (userEmailAddress) {
     let conn;
     try {
         conn = await pool.getConnection();
         const res = await conn.query(
             `SELECT *\
             FROM ${Schema.tableName}\
-            WHERE ${Schema.fields[0]}=?`,
-            userId
+            WHERE ${Schema.fields[1]}=?`,
+            userEmailAddress
         );
-        return res;
+        if (res.length >= 1) {
+            return res[0];
+        }
+        else {
+            return null;
+        }
     }
     catch (err) {
         console.log(err);
@@ -101,9 +106,9 @@ async function find_by_userId(userId) {
     finally {
         if (conn) conn.end();
     }
-}
+};
 
-async function create_user(data) {
+exports.create_user = async function (data) {
     let conn;
     try {
         conn = await pool.getConnection();
@@ -121,9 +126,9 @@ async function create_user(data) {
     finally {
         if (conn) conn.end();
     }
-}
+};
 
-async function update_user_password(userId, newPassword) {
+exports.update_user_password = async function(userId, newPassword) {
     let conn;
     try {
         conn = await pool.getConnection();
@@ -141,10 +146,10 @@ async function update_user_password(userId, newPassword) {
     finally {
         if (conn) conn.end();
     }
-}
+};
 
 
-async function delete_user(userId) {
+exports.delete_user = async function (userId) {
     let conn;
     try {
         conn = await pool.getConnection();
@@ -161,7 +166,7 @@ async function delete_user(userId) {
     finally {
         if (conn) conn.end();
     }
-}
+};
 
 
 
@@ -178,12 +183,10 @@ const newUser = {
 async function testdb() {
     let c;
     
-    c = await create_user(newUser).then((res) => console.log(res));
-    c = await find_by_userId("test").then((res) => console.log(res));
-    c = await update_user_password("test", "ABCDE").then((res) => console.log(res));
-    c = await find_by_userId("test").then((res) => console.log(res));
-    //c = await delete_user("test").then((res) => console.log(res));
+    // c = await create_user(newUser).then((res) => console.log(res));
+    // c = await find_by_emailAddress("aaa@gmail.com").then((res) => console.log(res));
     
 }
 
-testdb();
+// testdb();
+

@@ -2,7 +2,12 @@
 
 const { OAuth2Client } = require('google-auth-library');
 const google_config = require('../config/google.json').web;
-const router = require('express').Router();
+const jwt = require('jsonwebtoken');
+const jwt_config = require('../config/jwt_config.json');
+const mariadb = require('../models/mariadb');
+
+
+
 
 
 const oAuth2Client = new OAuth2Client(
@@ -13,7 +18,7 @@ const oAuth2Client = new OAuth2Client(
 
 
 
-function getUrl() {
+exports.get_url = function () {
     const scopes = [
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile"
@@ -22,51 +27,67 @@ function getUrl() {
         access_type: 'offline',
         scope: scopes
     });
-    console.log(url);
     return url;
+};
+
+function if_user_not_exist(user) {
+    if (user == null) return true;
+    return false;
 }
 
 
 
-async function googleLogin(code) {
+function make_auth_token(payload) {
+    const token = jwt.sign(
+        payload,
+        jwt_config.secret,
+        {
+            expiresIn: '1m'
+        }
+    );
+    return token;
+}
+
+
+exports.verify_auth_token = async function (token) {
+    return new Promise((resolve, reject) => {
+        jwt.verify(token, jwt_config.secret, (err, decoded) => {
+            if (err) reject(err);
+            resolve(decoded);
+        });
+    });
+};
+
+
+
+
+
+exports.google_login = async function (code) {
     const r = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(r.tokens);
 
     const tokenInfo = await oAuth2Client.getTokenInfo(
         oAuth2Client.credentials.access_token
     );
-    console.log(tokenInfo);
-
-    oAuth2Client.on('tokens', (tokens) => {
-        if (tokens.refresh_token) {
-            console.log("refresh token : ", tokens.refresh_token);
-        }
-        console.log("access token : ", tokens.access_token);
-    });
-
-    return oAuth2Client.credentials.access_token;
-}
-
-
-async function verify(token) {
-    try {
-        const ticket = await oAuth2Client.verifyIdToken({
-            idToken: token,
-            audience: google_config.client_id
-        });
-        const payload = ticket.getPayload();
-        return payload;
+    
+    let user = await mariadb.find_by_emailAddress(tokenInfo.email);
+    if (if_user_not_exist(user)) {
+        const newUserData = {
+            id: tokenInfo.sub,
+            emailAddress: tokenInfo.email,
+            password: null,
+        };
+        const r = await mariadb.create_user(newUserData);
+        user = newUserData;
     }
-    catch (err) {
-        throw new Error('no valid token');
-    }
-}
+    const payload = {
+        id: user.id,
+        scope: [],
+    };
+    const authToken = make_auth_token(payload);
 
-
-
-
-
-
+    return authToken;
+};
 
 
 
@@ -75,25 +96,3 @@ async function verify(token) {
 
 
 // ==================================================
-
-router.get('/google', function (req, res) {
-    const url = getUrl();
-    res.json({ "url": url });
-});
-
-router.get('/auth/google/callback', async function (req, res) {
-    const access_token = await googleLogin(req.query.code);
-    console.log("right login : ", access_token);
-
-    res.cookie('access_token', access_token, {
-        sameSite: 'lax',
-        secure: false,
-        httpOnly: true,
-    });
-
-    res.redirect("http://localhost:3000");
-});
-
-
-
-module.exports = router;

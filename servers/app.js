@@ -10,7 +10,10 @@ const cookieParser = require('cookie-parser');
 const startRouter = require('./routes/start');
 const onStateRouter = require('./routes/onState');
 const actionRouter = require('./routes/action');
-const googleLoginRouter = require('./oauth2/google');
+const googleLoginRouter = require('./routes/login');
+
+const testRouter = require('./routes/test');
+
 const mongodb = require('./models/mongodb');
 mongodb.connect();
 
@@ -45,6 +48,9 @@ app.use('/api/start', startRouter);
 app.use('/api/onState', onStateRouter);
 app.use('/api/action', actionRouter);
 app.use('/api/login', googleLoginRouter);
+app.use('/api/test', testRouter);
+
+
 
 let data = {
     "problems": [
