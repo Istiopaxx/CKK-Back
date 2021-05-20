@@ -14,7 +14,7 @@ const googleLoginRouter = require('./routes/login');
 
 const testRouter = require('./routes/test');
 
-const mongodb = require('./models/mongodb');
+const mongodb = require('./models/problemdb');
 mongodb.connect();
 
 // load config
