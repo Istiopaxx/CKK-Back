@@ -1,6 +1,6 @@
 const elevator = require('../lib/elevator');
 
-exports.exec_command = function(req, res, next) {
+const exec_command = function(req, res, next) {
     const data = req.data;
     let gradingData = data.gradingData;
     const commands = req.body.commands;
@@ -22,7 +22,7 @@ exports.exec_command = function(req, res, next) {
 
 
 
-exports.increase_timestamp = function(req, res, next) {
+const increase_timestamp = function(req, res, next) {
     let data = req.data;
     let gradingData = data.gradingData;
     let nowTimestamp = gradingData.timestamp;
@@ -35,7 +35,7 @@ exports.increase_timestamp = function(req, res, next) {
 
 
 
-exports.append_tickets = function(req, res, next) {
+const append_tickets = function(req, res, next) {
     let data = req.data;
     const entire_tickets = data.entire_tickets;
     let gradingData = data.gradingData;
@@ -61,7 +61,7 @@ exports.append_tickets = function(req, res, next) {
 
 
 
-exports.check_ifend = function(req, res, next) {
+const check_ifend = function(req, res, next) {
     const data = req.data;
 
     try {
@@ -83,3 +83,9 @@ exports.check_ifend = function(req, res, next) {
 
 
 
+module.exports = {
+    exec_command,
+    increase_timestamp,
+    append_tickets,
+    check_ifend,
+};
