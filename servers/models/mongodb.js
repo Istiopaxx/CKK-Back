@@ -1,21 +1,10 @@
 
-const mongodb_config = require('../config/mongodb_config.json');
+
 const elevator = require('../lib/elevator');
-
-const ObjectId = require('mongodb').ObjectID;
-const uri = mongodb_config.uri;
-const MongoClient = require('mongodb').MongoClient(uri , { useNewUrlParser: true, useUnifiedTopology: true });
+const mongo = require('./problemdb');
 
 
-exports.connect = async function() {
-    await MongoClient.connect();
-};
-
-
-exports.close = async function (req, res, next) {
-    await MongoClient.close();
-    next();
-};
+const MongoClient = mongo.MongoClient;
 
 
 exports.create = async(token) => {
