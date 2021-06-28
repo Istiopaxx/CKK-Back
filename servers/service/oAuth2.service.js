@@ -1,12 +1,10 @@
-
 const mariadb = require('../models/mariadb');
-
+const axios = require('axios');
 const { OAuth2Client } = require('google-auth-library');
 const google_config = require('../config/google.json').web;
-
+const github_config = require('../config/github.json').web;
 const { generateToken } = require('./token.service');
 const { token } = require('morgan');
-
 
 
 const googleClient = new OAuth2Client(
@@ -42,9 +40,44 @@ const googleLogin = async (code) => {
 };
 
 
+const githubUrl = () => {
+  let url = `https://github.com/login/oauth/authorize?client_id=${github_config.client_id}&scope=user`;
+  return url;
+};
+
+
+const githubLogin = async (code) => {
+  const res = await axios({
+    method: 'post',
+    url: `https://github.com/login/oauth/access_token?client_id=${github_config.client_id}&client_secret=${github_config.client_secret}&code=${code}`,
+    headers: {
+      accept: 'application/json'
+    }
+  });
+  const access_token = res.data.access_token;
+  const getInfo = await axios({
+    method: "get",
+    url: "https://api.github.com/user",
+    headers: {
+      Authorization: 'token ' + access_token
+    }
+  });
+  console.log(getInfo.data);
+  // get userinfo - email addr, etc.
+  // user register and generate token
+
+
+
+  return "token";
+};
+
+
+
+
 const getUrls = () => {
   const urls = {
     "google": googleUrl(),
+    "github": githubUrl(),
   };
   return urls;
 };
@@ -52,5 +85,6 @@ const getUrls = () => {
 
 module.exports = {
   googleLogin,
+  githubLogin,
   getUrls,
 };
