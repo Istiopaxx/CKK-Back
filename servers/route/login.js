@@ -1,28 +1,17 @@
 
 
 const router = require('express').Router();
+const authController = require('../controller/auth.controller');
+
 const google = require('../oauth2/google');
 
 
-router.get('/google', function (req, res) {
-    const url = google.get_url();
-    res.json({ "url": url });
-});
-
-router.get('/auth/google/callback', async function (req, res) {
-    const authToken = await google.google_login(req.query.code);
+router.get('/oauth2', authController.getOAuth2Urls);
+router.get('/oauth2/google', authController.googleLogin);
 
 
-    res.cookie('access_token', authToken, {
-        sameSite: 'lax',
-        secure: false,
-        httpOnly: true,
-        maxAge: 60 * 1000,
 
-    });
 
-    res.redirect("http://localhost:3000");
-});
 
 
 

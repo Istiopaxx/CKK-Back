@@ -30,6 +30,11 @@ exports.get_url = function () {
     return url;
 };
 
+
+
+
+
+
 function if_user_not_exist(user) {
     if (user == null) return true;
     return false;
