@@ -1,10 +1,11 @@
 const mariadb = require('../models/mariadb');
 const axios = require('axios');
 const { OAuth2Client } = require('google-auth-library');
+const { generateToken } = require('./token.service');
+
 const google_config = require('../config/google.json').web;
 const github_config = require('../config/github.json').web;
-const { generateToken } = require('./token.service');
-const { token } = require('morgan');
+const kakao_config = require('../config/kakao.json').web;
 
 
 const googleClient = new OAuth2Client(
@@ -79,12 +80,60 @@ const github = {
 };
 
 
+const kakao = {
+  Login: async (code) => {
+    const res = await axios({
+      method: 'post',
+      url: `https://kauth.kakao.com/oauth/token`,
+      headers: {
+        "Content-Type": 'application/json'
+      },
+      data: {
+        "grant_type": "authorization_code",
+        "client_id": kakao_config.client_id,
+        "redirect_uri": kakao_config.redirect_uri,
+        "code": code
+      }
+    });
+    const token = res.data.access_token;
+    const getInfo = await axios({
+      method: 'post',
+      url: 'https://kapi.kakao.com/v2/user/me',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        "Content-type": "application/json"
+      },
+      data: {
+        'property_keys': ["kakao_account.email"]
+      }
+    });
+    const email = getInfo.data.kakao_account.email;
+
+    let user = await mariadb.find_by_emailAddress(email);
+    if (!user) {
+      // user register, later implement
+    }
+    return generateToken(user.id, '10m', user.roles);
+
+  },
+
+  url: () => {
+    let url = `https://kauth.kakao.com/oauth/authorize?client_id=${kakao_config.client_id}&redirect_uri=${kakao_config.redirect_uri}&response_type=code`;
+    return url;
+  },
+
+
+};
+
+
+
 
 
 const getUrls = () => {
   const urls = {
     "google": google.url(),
     "github": github.url(),
+    "kakao": kakao.url(),
   };
   return urls;
 };
@@ -93,5 +142,6 @@ const getUrls = () => {
 module.exports = {
   google,
   github,
+  kakao,
   getUrls,
 };

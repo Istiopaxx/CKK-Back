@@ -3,6 +3,7 @@ const { tokenService, oAuth2Service } = require('../service');
 const providers = {
   'google': oAuth2Service.google,
   'github': oAuth2Service.github,
+  'kakao': oAuth2Service.kakao,
 };
 
 const setCookie = (res, token) => {
