@@ -1,73 +1,93 @@
 
-// load dependency
 const express = require('express');
-const http = require('http');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
+// const helmet = require('helmet');
+// const xss = require('xss-clean');
+// const mongoSanitize = require('express-mongo-sanitize');
+// const compression = require('compression');
 const cors = require('cors');
+const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+// const { authLimiter } = require('./middlewares/rateLimiter');
+const routes = require('./routes/v1');
+// const { errorConverter, errorHandler } = require('./middlewares/error');
+// const ApiError = require('./utils/ApiError');
 
-const startRouter = require('./routes/start');
-const onStateRouter = require('./routes/onState');
-const actionRouter = require('./routes/action');
-const googleLoginRouter = require('./routes/login');
 
-const testRouter = require('./routes/test');
+
+
 
 const mongodb = require('./models/problemdb');
 mongodb.connect();
 
-// load config
-
-const port = process.env.PORT || 4000;
-
-
 
 // =========================================================
 const app = express();
-const server = http.createServer(app);
 
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// logging
 app.use(morgan('dev'));
-app.use(cors({ origin: "http://localhost:3000" }));
+
+
+
+
+// parse json request body
+app.use(express.json());
+
+// parse urlencoded request body
+app.use(express.urlencoded({ extended: true }));
+
+// parse cookie
 app.use(cookieParser());
 
 
 
-// server open
-server.listen(port, () => {
-    console.log(`express is running on ${port}`);
+
+
+// enable cors
+app.use(cors({ origin: "http://localhost:3000" }));
+// app.options('*', cors());
+
+
+
+
+// api routes
+app.use('/', routes);
+
+
+
+// set security HTTP headers
+// app.use(helmet());
+
+// sanitize request data
+// app.use(xss());
+// app.use(mongoSanitize());
+
+// gzip compression
+// app.use(compression());
+
+
+
+// limit repeated failed requests to auth endpoints 
+/*
+if (config.env === 'production') {
+  app.use('/v1/auth', authLimiter);
+}
+*/
+
+
+// send back a 404 error for any unknown api request
+/*
+app.use((req, res, next) => {
+  next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
 });
+*/
+
+// convert error to ApiError, if needed
+// app.use(errorConverter);
+
+// handle error
+// app.use(errorHandler);
 
 
 
-// api route
-app.use('/api/start', startRouter);
-app.use('/api/onState', onStateRouter);
-app.use('/api/action', actionRouter);
-app.use('/api/login', googleLoginRouter);
-app.use('/api/test', testRouter);
-
-
-
-let data = {
-    "problems": [
-        {
-            "id": "1",
-            "name": "Elevator",
-            "explanation" : "엘리베이터 제어 시스템"
-        },
-        {
-            "id": "2",
-            "name": "SNS",
-            "explanation" : "팔로잉 추천을 사용자들의 팔로잉이 각각 20명 이상이 되도록 하는 추천시스템 구현"
-        }
-    ]
-};
-app.get('/api', (req, res) => res.json(data));
-app.get('/', (req, res) => res.send("로그인 후 홈페이지"));
-
-
+module.exports = app;
 

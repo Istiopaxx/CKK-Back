@@ -5,8 +5,8 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "node ./servers/app.js",
-    "dev": "nodemon ./servers/app.js",
+    "start": "node ./servers/index.js",
+    "dev": "nodemon ./servers/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
